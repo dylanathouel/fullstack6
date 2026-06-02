@@ -1,0 +1,16 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: fullstack6_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: fullstack6
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./server/db/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
