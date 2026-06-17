@@ -16,14 +16,14 @@ app.use(cors({ origin: 'http://localhost:5173' }));
 app.use(express.json());
 
 app.use('/auth',     authRoutes);
-app.use('/users',    usersRoutes);    // inclut /users/:id/todos, /posts, /albums
+app.use('/users',    usersRoutes);    // includes /users/:id/todos, /posts, /albums
 app.use('/todos',    todosRoutes);
-app.use('/posts',    postsRoutes);    // inclut /posts/:id/comments
+app.use('/posts',    postsRoutes);    // includes /posts/:id/comments
 app.use('/comments', commentsRoutes);
-app.use('/albums',   albumsRoutes);   // inclut /albums/:id/photos
+app.use('/albums',   albumsRoutes);   // includes /albums/:id/photos
 app.use('/admin',    adminRoutes);
 
-app.use((req, res) => res.status(404).json({ message: 'Route introuvable' }));
+app.use((req, res) => res.status(404).json({ message: 'Route not found' }));
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Serveur démarré sur http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

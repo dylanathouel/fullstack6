@@ -2,7 +2,7 @@ const router = require('express').Router();
 const pool = require('../db/connection');
 const { requireAdmin } = require('../middleware/auth');
 
-// GET /admin/users — liste tous les utilisateurs
+// GET /admin/users — list all users
 router.get('/users', requireAdmin, async (req, res) => {
   const [rows] = await pool.query(
     'SELECT id, username, name, email, phone, role, blocked FROM users ORDER BY id'
@@ -10,7 +10,7 @@ router.get('/users', requireAdmin, async (req, res) => {
   res.json(rows);
 });
 
-// PUT /admin/users/:id/block — bloquer/débloquer
+// PUT /admin/users/:id/block — block/unblock
 router.put('/users/:id/block', requireAdmin, async (req, res) => {
   const id = parseInt(req.params.id);
   const { blocked } = req.body;

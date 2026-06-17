@@ -11,7 +11,7 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    // Une seule requête : on récupère hash + infos user ensemble
+    // Single query: fetch the hash + user info together
     const [rows] = await pool.query(
       `SELECT u.id, u.username, u.name, u.email, u.role, u.blocked,
               p.password_hash
@@ -22,7 +22,7 @@ router.post('/login', async (req, res) => {
     );
 
     if (rows.length === 0) {
-      // Délai constant pour éviter l'énumération des usernames
+      // Constant-time delay to prevent username enumeration
       await bcrypt.compare(password, '$2b$10$invalidsaltinvalidsaltinvalidsa');
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
@@ -44,7 +44,7 @@ router.post('/login', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
 
-    // On ne renvoie jamais le hash
+    // Never return the hash
     return res.json({
       success: true,
       token,

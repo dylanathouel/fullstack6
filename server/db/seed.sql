@@ -2,7 +2,7 @@ CREATE DATABASE IF NOT EXISTS fullstack6;
 USE fullstack6;
 
 -- ============================================================
--- USERS (profil public)
+-- USERS (public profile)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS users (
   id       INT          PRIMARY KEY AUTO_INCREMENT,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- ============================================================
--- USER_PASSWORDS (séparée, accès restreint au code d'auth)
+-- USER_PASSWORDS (separate table, access restricted to auth code)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS user_passwords (
   user_id       INT         PRIMARY KEY,
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 
 -- ============================================================
 -- SEED DATA
--- Les mots de passe sont tous "password" hashés avec bcrypt
+-- All passwords are "password" hashed with bcrypt
 -- Hash : $2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi
 -- ============================================================
 

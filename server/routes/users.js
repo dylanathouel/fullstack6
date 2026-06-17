@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const pool = require('../db/connection');
 const { requireAuth } = require('../middleware/auth');
 
-// GET /users — champs publics uniquement (pas email/phone)
+// GET /users — public fields only (no email/phone)
 router.get('/', requireAuth, async (req, res) => {
   const [rows] = await pool.query(
     'SELECT id, username, name, role FROM users WHERE blocked = FALSE'
@@ -11,7 +11,7 @@ router.get('/', requireAuth, async (req, res) => {
   res.json(rows);
 });
 
-// GET /users/:id — infos sensibles réservées au propriétaire ou à l'admin
+// GET /users/:id — sensitive info restricted to the owner or an admin
 router.get('/:id', requireAuth, async (req, res) => {
   const targetId = parseInt(req.params.id);
   const isSelf  = req.user.id === targetId;
@@ -29,7 +29,7 @@ router.get('/:id', requireAuth, async (req, res) => {
   res.json(rows[0]);
 });
 
-// PUT /users/:id — mise à jour profil
+// PUT /users/:id — update profile
 router.put('/:id', requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
   if (req.user.id !== id) return res.status(403).json({ message: 'Access denied' });
@@ -63,7 +63,7 @@ router.put('/:id/password', requireAuth, async (req, res) => {
   res.json({ status: 'updated' });
 });
 
-// GET /users/:id/todos — réservé au propriétaire ou à l'admin
+// GET /users/:id/todos — restricted to the owner or an admin
 router.get('/:id/todos', requireAuth, async (req, res) => {
   const targetId = parseInt(req.params.id);
   if (req.user.id !== targetId && req.user.role !== 'admin') {
@@ -86,7 +86,7 @@ router.get('/:id/todos', requireAuth, async (req, res) => {
   res.json(rows);
 });
 
-// GET /users/:id/posts — authentification requise
+// GET /users/:id/posts — authentication required
 router.get('/:id/posts', requireAuth, async (req, res) => {
   const { _limit, _start } = req.query;
   let query = 'SELECT id, user_id, title, body FROM posts WHERE user_id = ? ORDER BY id';
@@ -99,7 +99,7 @@ router.get('/:id/posts', requireAuth, async (req, res) => {
   res.json(rows);
 });
 
-// GET /users/:id/albums — authentification requise
+// GET /users/:id/albums — authentication required
 router.get('/:id/albums', requireAuth, async (req, res) => {
   const [rows] = await pool.query(
     'SELECT id, user_id, title FROM albums WHERE user_id = ? ORDER BY id',
