@@ -1,4 +1,4 @@
-const router = require('express').Router();
+const router = require('../middleware/asyncRouter')();
 const bcrypt = require('bcryptjs');
 const pool = require('../db/connection');
 const { requireAuth } = require('../middleware/auth');

@@ -1,4 +1,4 @@
-const router = require('express').Router();
+const router = require('../middleware/asyncRouter')();
 const pool = require('../db/connection');
 const { requireAuth } = require('../middleware/auth');
 const { logAction } = require('../db/log');
