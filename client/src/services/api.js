@@ -43,10 +43,15 @@ export const deleteComment   = (id)       => api.delete(`/comments/${id}`);
 
 // Albums
 export const getUserAlbums  = (userId) => api.get(`/users/${userId}/albums`);
-export const getAlbumPhotos = (albumId) => api.get(`/albums/${albumId}/photos`);
+export const getAlbumPhotos = (albumId, params) => api.get(`/albums/${albumId}/photos`, { params });
 export const createAlbum    = (data)    => api.post('/albums', data);
 export const updateAlbum    = (id, data) => api.put(`/albums/${id}`, data);
 export const deleteAlbum    = (id)       => api.delete(`/albums/${id}`);
+
+// Photos
+export const createPhoto = (albumId, data) => api.post(`/albums/${albumId}/photos`, data);
+export const updatePhoto = (id, data)       => api.put(`/photos/${id}`, data);
+export const deletePhoto = (id)             => api.delete(`/photos/${id}`);
 
 // Admin
 export const adminGetUsers  = ()             => api.get('/admin/users');

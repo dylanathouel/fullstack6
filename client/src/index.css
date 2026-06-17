@@ -97,6 +97,8 @@ main { flex: 1; overflow-y: auto; padding: 24px 32px; }
 .photo-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .photo-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .75rem; width: 80px; text-align: center; }
 .photo-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; }
+.photo-add-form { flex-basis: 100%; flex-direction: column; align-items: stretch; margin-top: 10px; }
+.photo-add-form input { margin-bottom: 6px; }
 
 /* ── UserInfo ── */
 .user-info {
@@ -107,7 +109,11 @@ main { flex: 1; overflow-y: auto; padding: 24px 32px; }
 .user-info table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
 .user-info td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; font-size: .9rem; }
 .user-info td:first-child { font-weight: 500; color: #666; width: 120px; }
+.user-info > button { display: block; margin: 8px 0; }
 .info-msg { margin-top: 8px; color: #16a34a; font-size: .9rem; }
+
+/* ── Load more ── */
+.load-more-btn { flex-basis: 100%; margin-top: 6px; }
 
 /* ── Admin ── */
 .admin-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); margin: 20px 0; }

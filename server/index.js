@@ -17,6 +17,7 @@ const todosRoutes    = require('./routes/todos');
 const postsRoutes    = require('./routes/posts');
 const commentsRoutes = require('./routes/comments');
 const albumsRoutes   = require('./routes/albums');
+const photosRoutes   = require('./routes/photos');
 const adminRoutes    = require('./routes/admin');
 
 const app = express();
@@ -30,6 +31,7 @@ app.use('/todos',    todosRoutes);
 app.use('/posts',    postsRoutes);    // includes /posts/:id/comments
 app.use('/comments', commentsRoutes);
 app.use('/albums',   albumsRoutes);   // includes /albums/:id/photos
+app.use('/photos',   photosRoutes);
 app.use('/admin',    adminRoutes);
 
 app.use((req, res) => res.status(404).json({ message: 'Route not found' }));

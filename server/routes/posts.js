@@ -29,12 +29,15 @@ router.get('/:id', async (req, res) => {
   res.json(rows[0]);
 });
 
-// GET /posts/:id/comments
+// GET /posts/:id/comments  ?_limit=&_start=
 router.get('/:id/comments', async (req, res) => {
-  const [rows] = await pool.query(
-    'SELECT id, post_id, user_id, body FROM comments WHERE post_id = ? ORDER BY id',
-    [req.params.id]
-  );
+  const { _limit, _start } = req.query;
+  let query = 'SELECT id, post_id, user_id, body FROM comments WHERE post_id = ? ORDER BY id';
+  const params = [req.params.id];
+  if (_limit !== undefined) { query += ' LIMIT ?'; params.push(parseInt(_limit)); }
+  if (_start !== undefined) { query += ' OFFSET ?'; params.push(parseInt(_start)); }
+
+  const [rows] = await pool.query(query, params);
   res.json(rows);
 });
 
@@ -52,30 +55,32 @@ router.post('/', requireAuth, async (req, res) => {
   res.status(201).json({ status: 'created', id });
 });
 
-// PUT /posts/:id
+// PUT /posts/:id — single query: update + ownership check combined
 router.put('/:id', requireAuth, async (req, res) => {
   const id = req.params.id;
-  const [rows] = await pool.query('SELECT user_id FROM posts WHERE id = ?', [id]);
-  if (rows.length === 0) return res.status(404).json({ message: 'Post not found' });
-  if (rows[0].user_id !== req.user.id) return res.status(403).json({ message: 'Access denied' });
-
   const { title, body } = req.body;
-  await pool.query(
-    'UPDATE posts SET title=COALESCE(?,title), body=COALESCE(?,body) WHERE id=?',
-    [title ?? null, body ?? null, id]
+  const [result] = await pool.query(
+    'UPDATE posts SET title=COALESCE(?,title), body=COALESCE(?,body) WHERE id=? AND user_id=?',
+    [title ?? null, body ?? null, id, req.user.id]
   );
+  if (result.affectedRows === 0) {
+    const [rows] = await pool.query('SELECT id FROM posts WHERE id = ?', [id]);
+    return res.status(rows.length === 0 ? 404 : 403)
+      .json({ message: rows.length === 0 ? 'Post not found' : 'Access denied' });
+  }
   await logAction(req.user.id, `updated post #${id}`);
   res.json({ status: 'updated' });
 });
 
-// DELETE /posts/:id
+// DELETE /posts/:id — single query: delete + ownership check combined
 router.delete('/:id', requireAuth, async (req, res) => {
   const id = req.params.id;
-  const [rows] = await pool.query('SELECT user_id FROM posts WHERE id = ?', [id]);
-  if (rows.length === 0) return res.status(404).json({ message: 'Post not found' });
-  if (rows[0].user_id !== req.user.id) return res.status(403).json({ message: 'Access denied' });
-
-  await pool.query('DELETE FROM posts WHERE id = ?', [id]);
+  const [result] = await pool.query('DELETE FROM posts WHERE id = ? AND user_id = ?', [id, req.user.id]);
+  if (result.affectedRows === 0) {
+    const [rows] = await pool.query('SELECT id FROM posts WHERE id = ?', [id]);
+    return res.status(rows.length === 0 ? 404 : 403)
+      .json({ message: rows.length === 0 ? 'Post not found' : 'Access denied' });
+  }
   await logAction(req.user.id, `deleted post #${id}`);
   res.json({ status: 'deleted' });
 });

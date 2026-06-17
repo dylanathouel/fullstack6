@@ -47,30 +47,32 @@ router.post('/', requireAuth, async (req, res) => {
   res.status(201).json({ status: 'created', id });
 });
 
-// PUT /todos/:id
+// PUT /todos/:id — single query: update + ownership check combined
 router.put('/:id', requireAuth, async (req, res) => {
   const id = req.params.id;
-  const [rows] = await pool.query('SELECT user_id FROM todos WHERE id = ?', [id]);
-  if (rows.length === 0) return res.status(404).json({ message: 'Todo not found' });
-  if (rows[0].user_id !== req.user.id) return res.status(403).json({ message: 'Access denied' });
-
   const { title, completed } = req.body;
-  await pool.query(
-    'UPDATE todos SET title=COALESCE(?,title), completed=COALESCE(?,completed) WHERE id=?',
-    [title ?? null, completed ?? null, id]
+  const [result] = await pool.query(
+    'UPDATE todos SET title=COALESCE(?,title), completed=COALESCE(?,completed) WHERE id=? AND user_id=?',
+    [title ?? null, completed ?? null, id, req.user.id]
   );
+  if (result.affectedRows === 0) {
+    const [rows] = await pool.query('SELECT id FROM todos WHERE id = ?', [id]);
+    return res.status(rows.length === 0 ? 404 : 403)
+      .json({ message: rows.length === 0 ? 'Todo not found' : 'Access denied' });
+  }
   await logAction(req.user.id, `updated todo #${id}`);
   res.json({ status: 'updated' });
 });
 
-// DELETE /todos/:id
+// DELETE /todos/:id — single query: delete + ownership check combined
 router.delete('/:id', requireAuth, async (req, res) => {
   const id = req.params.id;
-  const [rows] = await pool.query('SELECT user_id FROM todos WHERE id = ?', [id]);
-  if (rows.length === 0) return res.status(404).json({ message: 'Todo not found' });
-  if (rows[0].user_id !== req.user.id) return res.status(403).json({ message: 'Access denied' });
-
-  await pool.query('DELETE FROM todos WHERE id = ?', [id]);
+  const [result] = await pool.query('DELETE FROM todos WHERE id = ? AND user_id = ?', [id, req.user.id]);
+  if (result.affectedRows === 0) {
+    const [rows] = await pool.query('SELECT id FROM todos WHERE id = ?', [id]);
+    return res.status(rows.length === 0 ? 404 : 403)
+      .json({ message: rows.length === 0 ? 'Todo not found' : 'Access denied' });
+  }
   await logAction(req.user.id, `deleted todo #${id}`);
   res.json({ status: 'deleted' });
 });

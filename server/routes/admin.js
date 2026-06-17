@@ -16,6 +16,7 @@ router.put('/users/:id/block', requireAdmin, async (req, res) => {
   const id = req.params.id;
   const { blocked } = req.body;
   if (blocked === undefined) return res.status(400).json({ message: 'Missing blocked field' });
+  if (id === req.user.id) return res.status(400).json({ message: 'You cannot block yourself' });
 
   await pool.query('UPDATE users SET blocked = ? WHERE id = ?', [blocked ? 1 : 0, id]);
   await logAction(req.user.id, `${blocked ? 'blocked' : 'unblocked'} user #${id}`);
