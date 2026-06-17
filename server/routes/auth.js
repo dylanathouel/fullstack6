@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../db/connection');
 const { logAction } = require('../db/log');
+const { generateId } = require('../db/id');
 
 // POST /auth/login
 router.post('/login', async (req, res) => {
@@ -77,11 +78,11 @@ router.post('/register', async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    const [result] = await pool.query(
-      'INSERT INTO users (username, name, email, phone, website) VALUES (?,?,?,?,?)',
-      [username, name, email, phone || null, website || null]
+    const userId = generateId();
+    await pool.query(
+      'INSERT INTO users (id, username, name, email, phone, website) VALUES (?,?,?,?,?,?)',
+      [userId, username, name, email, phone || null, website || null]
     );
-    const userId = result.insertId;
 
     await pool.query(
       'INSERT INTO user_passwords (user_id, password_hash) VALUES (?,?)',

@@ -14,7 +14,7 @@ router.get('/', requireAuth, async (req, res) => {
 
 // GET /users/:id — sensitive info restricted to the owner or an admin
 router.get('/:id', requireAuth, async (req, res) => {
-  const targetId = parseInt(req.params.id);
+  const targetId = req.params.id;
   const isSelf  = req.user.id === targetId;
   const isAdmin = req.user.role === 'admin';
 
@@ -32,7 +32,7 @@ router.get('/:id', requireAuth, async (req, res) => {
 
 // PUT /users/:id — update profile
 router.put('/:id', requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   if (req.user.id !== id) return res.status(403).json({ message: 'Access denied' });
 
   const { name, email, phone, website } = req.body;
@@ -46,7 +46,7 @@ router.put('/:id', requireAuth, async (req, res) => {
 
 // PUT /users/:id/password
 router.put('/:id/password', requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   if (req.user.id !== id) return res.status(403).json({ message: 'Access denied' });
 
   const { oldPassword, newPassword } = req.body;
@@ -68,7 +68,7 @@ router.put('/:id/password', requireAuth, async (req, res) => {
 
 // GET /users/:id/todos — restricted to the owner or an admin
 router.get('/:id/todos', requireAuth, async (req, res) => {
-  const targetId = parseInt(req.params.id);
+  const targetId = req.params.id;
   if (req.user.id !== targetId && req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Access denied' });
   }

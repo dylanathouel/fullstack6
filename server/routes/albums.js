@@ -1,13 +1,15 @@
 const router = require('express').Router();
 const pool = require('../db/connection');
 const { requireAuth } = require('../middleware/auth');
+const { logAction } = require('../db/log');
+const { generateId } = require('../db/id');
 
 // GET /albums  ?userId=
 router.get('/', async (req, res) => {
   const { userId } = req.query;
   let query = 'SELECT id, user_id, title FROM albums WHERE 1=1';
   const params = [];
-  if (userId) { query += ' AND user_id = ?'; params.push(parseInt(userId)); }
+  if (userId) { query += ' AND user_id = ?'; params.push(userId); }
   query += ' ORDER BY id';
   const [rows] = await pool.query(query, params);
   res.json(rows);
@@ -37,33 +39,37 @@ router.post('/', requireAuth, async (req, res) => {
   const { title } = req.body;
   if (!title) return res.status(400).json({ message: 'Title required' });
 
-  const [result] = await pool.query(
-    'INSERT INTO albums (user_id, title) VALUES (?,?)',
-    [req.user.id, title]
+  const id = generateId();
+  await pool.query(
+    'INSERT INTO albums (id, user_id, title) VALUES (?,?,?)',
+    [id, req.user.id, title]
   );
-  res.status(201).json({ status: 'created', id: result.insertId });
+  await logAction(req.user.id, `created album #${id}`);
+  res.status(201).json({ status: 'created', id });
 });
 
 // PUT /albums/:id
 router.put('/:id', requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   const [rows] = await pool.query('SELECT user_id FROM albums WHERE id = ?', [id]);
   if (rows.length === 0) return res.status(404).json({ message: 'Album not found' });
   if (rows[0].user_id !== req.user.id) return res.status(403).json({ message: 'Access denied' });
 
   const { title } = req.body;
   await pool.query('UPDATE albums SET title = COALESCE(?,title) WHERE id = ?', [title ?? null, id]);
+  await logAction(req.user.id, `updated album #${id}`);
   res.json({ status: 'updated' });
 });
 
 // DELETE /albums/:id
 router.delete('/:id', requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   const [rows] = await pool.query('SELECT user_id FROM albums WHERE id = ?', [id]);
   if (rows.length === 0) return res.status(404).json({ message: 'Album not found' });
   if (rows[0].user_id !== req.user.id) return res.status(403).json({ message: 'Access denied' });
 
   await pool.query('DELETE FROM albums WHERE id = ?', [id]);
+  await logAction(req.user.id, `deleted album #${id}`);
   res.json({ status: 'deleted' });
 });
 

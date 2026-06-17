@@ -2,6 +2,7 @@ const router = require('express').Router();
 const pool = require('../db/connection');
 const { requireAuth } = require('../middleware/auth');
 const { logAction } = require('../db/log');
+const { generateId } = require('../db/id');
 
 // GET /todos  ?userId=&completed=&_limit=&_start=
 router.get('/', async (req, res) => {
@@ -9,7 +10,7 @@ router.get('/', async (req, res) => {
   let query = 'SELECT id, user_id, title, completed FROM todos WHERE 1=1';
   const params = [];
 
-  if (userId) { query += ' AND user_id = ?'; params.push(parseInt(userId)); }
+  if (userId) { query += ' AND user_id = ?'; params.push(userId); }
   if (completed !== undefined) {
     query += ' AND completed = ?';
     params.push(completed === 'true' ? 1 : 0);
@@ -37,17 +38,18 @@ router.post('/', requireAuth, async (req, res) => {
   const { title } = req.body;
   if (!title) return res.status(400).json({ message: 'Title required' });
 
-  const [result] = await pool.query(
-    'INSERT INTO todos (user_id, title, completed) VALUES (?,?,FALSE)',
-    [req.user.id, title]
+  const id = generateId();
+  await pool.query(
+    'INSERT INTO todos (id, user_id, title, completed) VALUES (?,?,?,FALSE)',
+    [id, req.user.id, title]
   );
-  await logAction(req.user.id, `created todo #${result.insertId}`);
-  res.status(201).json({ status: 'created', id: result.insertId });
+  await logAction(req.user.id, `created todo #${id}`);
+  res.status(201).json({ status: 'created', id });
 });
 
 // PUT /todos/:id
 router.put('/:id', requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   const [rows] = await pool.query('SELECT user_id FROM todos WHERE id = ?', [id]);
   if (rows.length === 0) return res.status(404).json({ message: 'Todo not found' });
   if (rows[0].user_id !== req.user.id) return res.status(403).json({ message: 'Access denied' });
@@ -63,7 +65,7 @@ router.put('/:id', requireAuth, async (req, res) => {
 
 // DELETE /todos/:id
 router.delete('/:id', requireAuth, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   const [rows] = await pool.query('SELECT user_id FROM todos WHERE id = ?', [id]);
   if (rows.length === 0) return res.status(404).json({ message: 'Todo not found' });
   if (rows[0].user_id !== req.user.id) return res.status(403).json({ message: 'Access denied' });

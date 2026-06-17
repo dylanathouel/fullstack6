@@ -13,7 +13,7 @@ router.get('/users', requireAdmin, async (req, res) => {
 
 // PUT /admin/users/:id/block — block/unblock
 router.put('/users/:id/block', requireAdmin, async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   const { blocked } = req.body;
   if (blocked === undefined) return res.status(400).json({ message: 'Missing blocked field' });
 
