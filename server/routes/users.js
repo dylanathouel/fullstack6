@@ -2,6 +2,7 @@ const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const pool = require('../db/connection');
 const { requireAuth } = require('../middleware/auth');
+const { logAction } = require('../db/log');
 
 // GET /users — public fields only (no email/phone)
 router.get('/', requireAuth, async (req, res) => {
@@ -39,6 +40,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     'UPDATE users SET name=COALESCE(?,name), email=COALESCE(?,email), phone=COALESCE(?,phone), website=COALESCE(?,website) WHERE id=?',
     [name ?? null, email ?? null, phone ?? null, website ?? null, id]
   );
+  await logAction(id, 'updated profile');
   res.json({ status: 'updated' });
 });
 
@@ -60,6 +62,7 @@ router.put('/:id/password', requireAuth, async (req, res) => {
 
   const hash = await bcrypt.hash(newPassword, 10);
   await pool.query('UPDATE user_passwords SET password_hash = ? WHERE user_id = ?', [hash, id]);
+  await logAction(id, 'changed password');
   res.json({ status: 'updated' });
 });
 

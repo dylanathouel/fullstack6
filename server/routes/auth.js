@@ -2,6 +2,7 @@ const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../db/connection');
+const { logAction } = require('../db/log');
 
 // POST /auth/login
 router.post('/login', async (req, res) => {
@@ -44,6 +45,8 @@ router.post('/login', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
 
+    await logAction(user.id, 'login');
+
     // Never return the hash
     return res.json({
       success: true,
@@ -84,6 +87,8 @@ router.post('/register', async (req, res) => {
       'INSERT INTO user_passwords (user_id, password_hash) VALUES (?,?)',
       [userId, hash]
     );
+
+    await logAction(userId, 'register');
 
     return res.status(201).json({ success: true, id: userId });
   } catch (err) {

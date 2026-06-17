@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const pool = require('../db/connection');
 const { requireAdmin } = require('../middleware/auth');
+const { logAction } = require('../db/log');
 
 // GET /admin/users — list all users
 router.get('/users', requireAdmin, async (req, res) => {
@@ -17,6 +18,7 @@ router.put('/users/:id/block', requireAdmin, async (req, res) => {
   if (blocked === undefined) return res.status(400).json({ message: 'Missing blocked field' });
 
   await pool.query('UPDATE users SET blocked = ? WHERE id = ?', [blocked ? 1 : 0, id]);
+  await logAction(req.user.id, `${blocked ? 'blocked' : 'unblocked'} user #${id}`);
   res.json({ status: 'updated' });
 });
 

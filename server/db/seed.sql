@@ -104,7 +104,7 @@ INSERT INTO users (username, name, email, phone, website, role) VALUES
   ('samantha', 'Clementine Bauch','nathan@yesenia.net','1-463-123-4447', 'ramiro.info',   'user'),
   ('karianne', 'Patricia Lebsack','julianne@kory.org', '493-170-9623',   'kory.biz',      'user');
 
--- password_hash = bcrypt("password123", 10)
+-- password_hash = bcrypt("password", 10)
 INSERT INTO user_passwords (user_id, password_hash) VALUES
   (1, '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),
   (2, '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),

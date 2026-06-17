@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const pool = require('../db/connection');
 const { requireAuth } = require('../middleware/auth');
+const { logAction } = require('../db/log');
 
 // GET /todos  ?userId=&completed=&_limit=&_start=
 router.get('/', async (req, res) => {
@@ -40,6 +41,7 @@ router.post('/', requireAuth, async (req, res) => {
     'INSERT INTO todos (user_id, title, completed) VALUES (?,?,FALSE)',
     [req.user.id, title]
   );
+  await logAction(req.user.id, `created todo #${result.insertId}`);
   res.status(201).json({ status: 'created', id: result.insertId });
 });
 
@@ -55,6 +57,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     'UPDATE todos SET title=COALESCE(?,title), completed=COALESCE(?,completed) WHERE id=?',
     [title ?? null, completed ?? null, id]
   );
+  await logAction(req.user.id, `updated todo #${id}`);
   res.json({ status: 'updated' });
 });
 
@@ -66,6 +69,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
   if (rows[0].user_id !== req.user.id) return res.status(403).json({ message: 'Access denied' });
 
   await pool.query('DELETE FROM todos WHERE id = ?', [id]);
+  await logAction(req.user.id, `deleted todo #${id}`);
   res.json({ status: 'deleted' });
 });
 
